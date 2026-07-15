@@ -40,7 +40,7 @@ export function LoginForm({ isConfigured, initialError = false }: { isConfigured
           <h2>Welcome to your kitchen</h2>
           <p>We’ll email you a secure sign-in link. No password to remember.</p>
           {!isConfigured ? (
-            <div className={styles.setupNote}><strong>Setup still needed</strong><span>Add the staging Supabase values from <code>.env.example</code> to enable sign-in.</span></div>
+            <div className={styles.setupNote}><strong>Setup still needed</strong><span>Add your Supabase values from <code>.env.example</code> to enable sign-in.</span></div>
           ) : status === "sent" ? (
             <div className={styles.sent}><Mail size={24} /><strong>Check your inbox</strong><span>Use the link we sent to {email}.</span></div>
           ) : (

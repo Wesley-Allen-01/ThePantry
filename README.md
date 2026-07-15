@@ -9,16 +9,14 @@ A small household web app for tracking groceries, reducing food waste, recording
 - Vercel for preview and production deployments
 - GitHub Actions for application and database validation
 
-The daily development workflow does not require containers on your Mac. Local application development can use the hosted staging Supabase project; GitHub Actions recreates the database from migrations on a disposable runner.
+The app can run without Supabase credentials in a clearly labeled prototype mode. Connected development can use either a local Supabase stack or a Supabase project you control. GitHub Actions recreates the database from migrations on a disposable runner.
 
 ## Local application setup
 
-1. Install dependencies with `npm install`.
-2. Copy `.env.example` to `.env.local`.
-3. Add the URL and publishable key from the staging Supabase project.
-4. Start the app with `npm run dev`.
+1. Install dependencies with `npm ci`.
+2. Start the app with `npm run dev`.
 
-Until Supabase credentials are configured, the UI opens in clearly labeled prototype mode with realistic in-memory data.
+To connect Supabase, copy `.env.example` to `.env.local` and add the URL and publishable key from a project you control. You can also run `supabase start` with Docker available; the local stack applies the committed migrations and prints the development URL and publishable key. Never put service-role keys, database passwords, or other secrets in `NEXT_PUBLIC_*` variables.
 
 ## Database workflow
 
@@ -27,12 +25,17 @@ All schema changes belong in `supabase/migrations`. Do not edit the production s
 For normal development:
 
 1. Add a migration locally.
-2. Push it to the staging project with the Supabase CLI.
-3. Open a pull request and let CI rebuild a clean database from every migration.
-4. Test the Vercel preview.
-5. Merge after the application and database checks pass.
+2. Run `supabase db reset` against the local stack.
+3. Push it to the maintainer staging project with the Supabase CLI when appropriate.
+4. Open a pull request and let CI rebuild a clean database from every migration.
+5. Test the Vercel preview.
+6. Merge after the application, database, and deployment checks pass.
 
 Production changes should remain backward-compatible so the old and new application versions can both operate while a deployment is in progress.
+
+## Deployment
+
+Vercel's GitHub integration creates preview deployments for branches and deploys `main` to production. GitHub Actions validates the application and reconstructs a disposable local database; it does not receive production secrets or modify hosted Supabase projects. Hosted database migrations remain an explicit maintainer release step.
 
 ## Commands
 
@@ -41,6 +44,10 @@ Production changes should remain backward-compatible so the old and new applicat
 - `npm test` — run unit tests
 - `npm run build` — create a production build
 - `npm run check` — run all application checks
+
+## License
+
+The Pantry is available under the [MIT License](LICENSE). Forks are welcome; upstream development is currently maintainer-led.
 
 ## Current milestone
 

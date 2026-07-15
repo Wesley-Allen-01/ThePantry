@@ -8,28 +8,60 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   application:
+    name: Application
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm run check
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run application checks
+        run: npm run check
 
   database:
+    name: Database
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: supabase/setup-cli@v1
+      - name: Check out repository
+        uses: actions/checkout@v4
         with:
-          version: 2.101.0
+          persist-credentials: false
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+
       - name: Rebuild database from migrations
         run: supabase start
+
       - name: Reset from committed migration history
         run: supabase db reset
+
+      - name: Lint database schema
+        run: supabase db lint --local --level warning --fail-on error
+
       - name: Validate migration history
         run: supabase migration list --local
+
+      - name: Stop local Supabase services
+        if: always()
+        run: supabase stop --no-backup
